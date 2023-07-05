@@ -74,10 +74,24 @@ async fn main() -> Result<(), Error> {
 }
 
 fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
-    let content = fs::read_to_string(path)?;
-    let data: HashMap<String, Value> = from_str(&content)?;
+    use std::io::BufReader;
+    use std::io::prelude::*;
+    use std::fs::File;
+
+    let file = File::open(path)?;
+    let reader = BufReader::new(file);
+    let mut data: HashMap<String, Value> = HashMap::new();
+
+    for line in reader.lines() {
+        let line = line?;
+        let value: Value = serde_json::from_str(&line)?;
+        let id = value["id"].as_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid format: couldn't find 'id' in the metadata line"))?;
+        data.insert(id.to_string(), value);
+    }
     Ok(data)
 }
+
 
 async fn download_gdc_data(id: String, filename: String) {
     match _download_gdc_data(id.clone(), filename.clone()).await {
