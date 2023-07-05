@@ -63,13 +63,11 @@ async fn main() -> Result<(), Error> {
                 tasks.push(async move {
                     let _permit = sem_clone.acquire().await;
                     let filename_clone = filename.clone();
-                    match download_gdc_data(id.clone(), filename_clone).await {
-                        Ok(_) => println!("Finished downloading file {}", filename),
-                        Err(e) => {
-                            eprintln!("Failed to download file {} with error: {}", filename, e);
-                            Err(e)
-                        }
-                    }
+                    tasks.push(async move {
+                        let _permit = sem_clone.acquire().await;
+                        let filename_clone = filename.clone();
+                        download_gdc_data(id.clone(), filename_clone).await
+                    });
                 });
                 
             }
@@ -77,7 +75,7 @@ async fn main() -> Result<(), Error> {
                 if let Err(e) = result {
                     eprintln!("A task encountered an error: {}", e);
                 }
-            }            
+            }        
         }
     }
 
@@ -104,7 +102,16 @@ fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
 }
 
 async fn download_gdc_data(id: String, filename: String) -> Result<(), Error> {
-    _download_gdc_data(id, filename).await
+    match _download_gdc_data(id.clone(), filename.clone()).await {
+        Ok(_) => {
+            println!("Finished downloading file {}", filename);
+            Ok(())
+        },
+        Err(e) => {
+            eprintln!("Failed to download file {} with error: {}", filename, e);
+            Err(e)
+        }
+    }
 }
 
 async fn _download_gdc_data(id: String, filename: String) -> Result<(), anyhow::Error> {
