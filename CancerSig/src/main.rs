@@ -61,8 +61,8 @@ async fn main() -> Result<(), Error> {
                     continue;
                 }
                 tasks.push(async move {
-                    let _permit = sem_clone.acquire().await;
-                    match download_gdc_data(id, filename).await {
+                    let filename_clone = filename.clone();
+                    match download_gdc_data(id, filename_clone).await {
                         Ok(_) => println!("Finished downloading file {}", filename),
                         Err(e) => eprintln!("Failed to download file {} with error: {}", filename, e),
                     }
