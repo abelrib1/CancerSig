@@ -96,9 +96,11 @@ fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
 
 
 
-async fn download_gdc_data(id: String, filename: String) -> Result<(), Error> {
-    _download_gdc_data(id.clone(), filename.clone()).await
-    Ok(())
+async fn download_gdc_data(id: String, filename: String) {
+    match _download_gdc_data(id.clone(), filename.clone()).await {
+        Ok(_) => println!("Finished downloading file {}", filename),
+        Err(e) => eprintln!("Error downloading file {}: {:?}", filename, e),
+    }
 }
 
 async fn _download_gdc_data(id: String, filename: String) -> Result<(), anyhow::Error> {
