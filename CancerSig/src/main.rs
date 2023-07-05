@@ -98,6 +98,7 @@ fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
 
 async fn download_gdc_data(id: String, filename: String) -> Result<(), Error> {
     _download_gdc_data(id.clone(), filename.clone()).await
+    Ok(())
 }
 
 async fn _download_gdc_data(id: String, filename: String) -> Result<(), anyhow::Error> {
