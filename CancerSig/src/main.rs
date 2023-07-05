@@ -60,10 +60,12 @@ async fn main() -> Result<(), Error> {
                     println!("File {} is already processed. Skipping.", filename);
                     continue;
                 }
-
                 tasks.push(async move {
                     let _permit = sem_clone.acquire().await;
-                    download_gdc_data(id, filename).await; 
+                    match download_gdc_data(id, filename).await {
+                        Ok(_) => println!("Finished downloading file {}", filename),
+                        Err(e) => eprintln!("Failed to download file {} with error: {}", filename, e),
+                    }
                 });
             }
             while let Some(()) = tasks.next().await { /* keep polling until None */ }
@@ -94,11 +96,8 @@ fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
 
 
 
-async fn download_gdc_data(id: String, filename: String) {
-    match _download_gdc_data(id.clone(), filename.clone()).await {
-        Ok(_) => println!("Finished downloading file {}", filename),
-        Err(err) => eprintln!("Error downloading file {} with id {}: {}", filename, id, err),
-    }
+async fn download_gdc_data(id: String, filename: String) -> Result<(), Error> {
+    _download_gdc_data(id.clone(), filename.clone()).await
 }
 
 async fn _download_gdc_data(id: String, filename: String) -> Result<(), anyhow::Error> {
