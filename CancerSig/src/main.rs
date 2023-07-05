@@ -63,13 +63,21 @@ async fn main() -> Result<(), Error> {
                 tasks.push(async move {
                     let _permit = sem_clone.acquire().await;
                     let filename_clone = filename.clone();
-                    match download_gdc_data(id, filename_clone).await {
+                    match download_gdc_data(id.clone(), filename_clone).await {
                         Ok(_) => println!("Finished downloading file {}", filename),
-                        Err(e) => eprintln!("Failed to download file {} with error: {}", filename, e),
+                        Err(e) => {
+                            eprintln!("Failed to download file {} with error: {}", filename, e);
+                            Err(e)
+                        }
                     }
                 });
+                
             }
-            while let Some(()) = tasks.next().await { /* keep polling until None */ }
+            while let Some(result) = tasks.next().await {
+                if let Err(e) = result {
+                    eprintln!("A task encountered an error: {}", e);
+                }
+            }            
         }
     }
 
