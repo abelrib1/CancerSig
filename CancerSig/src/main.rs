@@ -85,12 +85,13 @@ fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
     for line in reader.lines() {
         let line = line?;
         let value: Value = serde_json::from_str(&line)?;
-        let id = value["id"].as_str()
-            .ok_or_else(|| anyhow::anyhow!("Invalid format: couldn't find 'id' in the metadata line"))?;
+        let id = value["data"]["file_id"].as_str()
+            .ok_or_else(|| anyhow::anyhow!("Invalid format: couldn't find 'file_id' in the metadata line"))?;
         data.insert(id.to_string(), value);
     }
     Ok(data)
 }
+
 
 
 async fn download_gdc_data(id: String, filename: String) {
