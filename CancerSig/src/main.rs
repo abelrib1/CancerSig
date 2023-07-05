@@ -19,7 +19,7 @@ use std::sync::Arc;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-    let sem = Arc::new(Semaphore::new(20));
+    let sem = Arc::new(Semaphore::new(50));
     let matches = App::new("CancerSig")
         .version("1.0")
         .about("Downloads data from the GDC")
