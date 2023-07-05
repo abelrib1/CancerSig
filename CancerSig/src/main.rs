@@ -80,11 +80,6 @@ async fn _download_gdc_data(id: String, filename: String) -> Result<(), anyhow::
     // Fetch and process metadata
     let metadata = reqwest::get(&metadata_url).await?.json::<Value>().await?;
 
-    let mut metadata_file = OpenOptions::new()
-        .create(true)
-        .append(true)
-        .open("metadata.json")?;
-    writeln!(metadata_file, "{}", serde_json::to_string(&metadata)?)?;
 
     // Fetch and save file data
     let file_data = reqwest::get(&data_url).await?.bytes().await?;
@@ -93,6 +88,13 @@ async fn _download_gdc_data(id: String, filename: String) -> Result<(), anyhow::
     
     let mut file = File::create(&file_path).await?;
     file.write_all(&file_data).await?;
+
+
+    let mut metadata_file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open("metadata.json")?;
+    writeln!(metadata_file, "{}", serde_json::to_string(&metadata)?)?;
 
     Ok(())
 }
