@@ -64,7 +64,7 @@ async fn main() -> Result<(), Error> {
                     let filename_clone = filename.clone();
                     match download_gdc_data(id, filename_clone).await {
                         Ok(_) => println!("Finished downloading file {}", filename),
-                        Err(e) => eprintln!("Failed to download file {} with error: {}", filename, e),
+                        Err(e) => println!("Failed to download file {} with error: {}", filename, e),
                     }
                 });
             }
