@@ -63,19 +63,15 @@ async fn main() -> Result<(), Error> {
                 tasks.push(async move {
                     let _permit = sem_clone.acquire().await;
                     let filename_clone = filename.clone();
-                    tasks.push(async move {
-                        let _permit = sem_clone.acquire().await;
-                        let filename_clone = filename.clone();
-                        download_gdc_data(id.clone(), filename_clone).await
-                    });
-                });
+                    download_gdc_data(id.clone(), filename_clone).await
+                });                
                 
             }
             while let Some(result) = tasks.next().await {
                 if let Err(e) = result {
                     eprintln!("A task encountered an error: {}", e);
                 }
-            }        
+            }     
         }
     }
 
