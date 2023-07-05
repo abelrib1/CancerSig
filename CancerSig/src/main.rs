@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use tokio::io::AsyncWriteExt;
 use tokio::fs::File;
 use tokio::runtime::Builder;
-use serde_json::Value;
+use serde_json::{Value, from_str};
 use csv::ReaderBuilder;
 use std::fs;
 use std::io::Write;
@@ -29,41 +29,55 @@ async fn main() -> Result<(), Error> {
                 .arg(Arg::with_name("manifest")
                     .help("The path to the manifest file")
                     .required(true)
-                    .index(1)))
+                    .index(1))
+                .arg(Arg::with_name("metadata")
+                    .long("complete")
+                    .value_name("FILE")
+                    .help("The path to the metadata file")
+                    .takes_value(true)))
         .get_matches();
 
-        if let Some(matches) = matches.subcommand_matches("download") {
-            if let Some(manifest_path) = matches.value_of("manifest") {
-                
-                let mut tasks = FuturesUnordered::new();
-    
-                // Parsing CSV and creating async tasks for each record
-                let mut rdr = csv::ReaderBuilder::new()
-                    .delimiter(b'\t')
-                    .from_path(manifest_path)?;
-                for result in rdr.deserialize() {
-                    let record: HashMap<String, String> = result?;
-                    let id = record["id"].clone();
-                    let filename = record["filename"].clone();
-                    let sem_clone = Arc::clone(&sem);
-
-                    tasks.push(async move {
-                        let _permit = sem_clone.acquire().await;
-                        download_gdc_data(id, filename).await; 
-                    });
-                }
-                while let Some(()) = tasks.next().await { /* keep polling until None */ }
-                // while let Some(task) = tasks.next().await {
-                //     match task.await {
-                //         Ok(_) => println!("Task completed successfully"), 
-                //         Err(e) => eprintln!("Task panicked with error: {:?}", e),
-                //     }  
-                // }
-            }
+    let mut processed_files: HashMap<String, Value> = HashMap::new();
+    if let Some(matches) = matches.subcommand_matches("download") {
+        if let Some(metadata_path) = matches.value_of("metadata") {
+            processed_files = load_metadata(metadata_path)?;
         }
-    
-        Ok(())
+        if let Some(manifest_path) = matches.value_of("manifest") {
+            
+            let mut tasks = FuturesUnordered::new();
+
+            // Parsing CSV and creating async tasks for each record
+            let mut rdr = csv::ReaderBuilder::new()
+                .delimiter(b'\t')
+                .from_path(manifest_path)?;
+            for result in rdr.deserialize() {
+                let record: HashMap<String, String> = result?;
+                let id = record["id"].clone();
+                let filename = record["filename"].clone();
+                let sem_clone = Arc::clone(&sem);
+
+                if processed_files.get(&id).is_some() {
+                    println!("File {} is already processed. Skipping.", filename);
+                    continue;
+                }
+
+                tasks.push(async move {
+                    let _permit = sem_clone.acquire().await;
+                    download_gdc_data(id, filename).await; 
+                });
+            }
+            while let Some(()) = tasks.next().await { /* keep polling until None */ }
+        }
     }
+
+    Ok(())
+}
+
+fn load_metadata(path: &str) -> Result<HashMap<String, Value>, Error> {
+    let content = fs::read_to_string(path)?;
+    let data: HashMap<String, Value> = from_str(&content)?;
+    Ok(data)
+}
 
 async fn download_gdc_data(id: String, filename: String) {
     match _download_gdc_data(id.clone(), filename.clone()).await {
