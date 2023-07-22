@@ -12,7 +12,7 @@ sudo apt install rustc
 cargo build --release
 ```
 
-As well as in Python
+In Python
 
 ```bash
 sudo apt-get install openslide-tools
