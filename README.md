@@ -1,40 +1,38 @@
 # CancerSig
-Probabilistic engine for cancer outcome prediction
+Probabilistic engine for cancer outcome prediction.
 
-## Install Ubuntu
-`
+CancerSig uses multi-nomial data from Cancer patients to predict treatment outcomes.
+
+## Installation on Ubuntu
+First, make sure you have the correct libraries
+```bash
 apt install libssl-dev
 sudo apt install cargo
 sudo apt install rustc
 cargo build --release
-`
+```
 
-`
+As well as in Python
+
+```bash
 sudo apt-get install openslide-tools
 pip install openslide-python
+```
+
+Download using your manifest the following way
+`
+CancerSig/target/release/CancerSig download gdc_manifest.2023-07-05.txt
 `
 
-Download
-`
-/root/CancerSig/CancerSig/target/release/CancerSig download gdc_manifest.2023-07-05.txt
-`
-
-There might be a need to relaunch it from time to time
+There might be a need to relaunch it from time to time if connections get cut, which you can achieve using the metadata.json file the following way
 `
 /root/CancerSig/CancerSig/target/release/CancerSig download gdc_manifest.2023-07-05.txt --complete metadata.json 2>&1  | tee log.txt
 `
-Recommend high SWAP memory (60GB)
 
+We highly recommend you setting up at least 60GB of SWAP memory.
 
-IDAT
-`
-download and install from https://support.illumina.com/downloads/iaap-genotyping-cli.html
-tar -xvf iaap-cli-linux-x64-1.1.0-sha.80d7e5b3d9c1fdfc2e99b472a90652fd3848bbc7.tar
-cd iaap-cli-linux-x64-1.1.0-sha.80d7e5b3d9c1fdfc2e99b472a90652fd3848bbc7/iaap-cli
-echo "export PATH=$PATH:$(pwd)" >> ~/.bash_profile
-source ~/.bash_profile
-
-
+#
+## File numbers
 copy number variation
 73,639
 
@@ -55,11 +53,6 @@ simple nucleotide variation
 
 proteome profiling
 7,906
-
-
-
-
-
 
 simple nucleotide variation
 358,021
